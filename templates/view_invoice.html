@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2><i class="fas fa-file-invoice"></i> فاتورة #{{ invoice.id }}</h2>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('invoices') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-right"></i> العودة إلى قائمة الفواتير
+        </a>
+        <a href="{{ url_for('edit_invoice', id=invoice.id) }}" class="btn btn-primary">
+            <i class="fas fa-edit"></i> تعديل
+        </a>
+        <button onclick="window.print();" class="btn btn-info">
+            <i class="fas fa-print"></i> طباعة
+        </button>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-primary text-white">
+        <i class="fas fa-file-invoice-dollar"></i> تفاصيل الفاتورة
+    </div>
+    <div class="card-body">
+        <div class="container" id="invoice-print">
+            <!-- رأس الفاتورة -->
+            <div class="row mb-4">
+                <div class="col-md-6 text-start">
+                    <h3 class="mb-0">ابتسامة المشاهير لتجميل الاسنان</h3>
+                    <p class="mb-1">العنوان: ليبيا</p>
+                    <p class="mb-1">الهاتف: +218913494646</p>
+                    <p>البريد الإلكتروني: info@celebrity-smile.ly</p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <h4 class="mb-0">فاتورة #{{ invoice.id }}</h4>
+                    <p class="mb-1">التاريخ: {{ invoice.date.strftime('%Y-%m-%d') }}</p>
+                    <p class="mb-1">الحالة:
+                        {% if invoice.status == 'paid' %}
+                        <span class="badge rounded-pill bg-success">مدفوع</span>
+                        {% elif invoice.status == 'partial' %}
+                        <span class="badge rounded-pill bg-warning text-dark">مدفوع جزئياً</span>
+                        {% elif invoice.status == 'unpaid' %}
+                        <span class="badge rounded-pill bg-danger">غير مدفوع</span>
+                        {% elif invoice.status == 'carried_forward' %}
+                        <span class="badge rounded-pill bg-info">مرحل للفاتورة التالية</span>
+                        {% elif invoice.status == 'paid_in_next' %}
+                        <span class="badge rounded-pill bg-primary">مدفوع في فاتورة لاحقة</span>
+                        {% endif %}
+                    </p>
+                    <p>طريقة الدفع:
+                        {% if invoice.payment_method == 'cash' %}
+                        <span class="badge rounded-pill bg-success">نقداً</span>
+                        {% elif invoice.payment_method == 'card' %}
+                        <span class="badge rounded-pill bg-info">بطاقة</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+
+            <hr>
+
+            <!-- معلومات المريض -->
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <div class="card border-primary">
+                        <div class="card-header bg-primary text-white">
+                            <i class="fas fa-user"></i> معلومات المريض
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <p class="mb-1"><strong>الاسم:</strong> {{ invoice.patient.name }}</p>
+                                </div>
+                                <div class="col-md-4">
+                                    <p class="mb-1"><strong>الهاتف:</strong> {{ invoice.patient.phone }}</p>
+                                </div>
+                                <div class="col-md-4">
+                                    <p class="mb-1"><strong>العنوان:</strong> {{ invoice.patient.address }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if invoice.carried_amount > 0 or previous_invoice %}
+            <!-- معلومات الدين المرحل -->
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <div class="card border-info">
+                        <div class="card-header bg-info text-white">
+                            <i class="fas fa-exchange-alt"></i> معلومات الدين المرحل
+                        </div>
+                        <div class="card-body">
+                            {% if invoice.carried_amount > 0 %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-arrow-down"></i> تم ترحيل مبلغ <strong>{{ invoice.carried_amount }} د.ل</strong> من الفاتورة السابقة رقم <strong>#{{ previous_invoice.id }}</strong> بتاريخ {{ previous_invoice.date.strftime('%Y-%m-%d') }}
+                            </div>
+                            {% endif %}
+
+                            {% if invoice.status == 'carried_forward' %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-arrow-up"></i> تم ترحيل المبلغ المتبقي <strong>{{ invoice.total_amount - invoice.paid_amount }} د.ل</strong> من هذه الفاتورة إلى فاتورة لاحقة.
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- عناصر الفاتورة -->
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <div class="card border-success">
+                        <div class="card-header bg-success text-white">
+                            <i class="fas fa-list-alt"></i> عناصر الفاتورة
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th class="text-center">#</th>
+                                            <th>العلاج / الخدمة</th>
+                                            <th class="text-center">السعر (د.ل)</th>
+                                            <th class="text-center">الكمية</th>
+                                            <th class="text-center">المجموع (د.ل)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for item in invoice.items %}
+                                        <tr>
+                                            <td class="text-center">{{ loop.index }}</td>
+                                            <td>{{ item.treatment.name }}</td>
+                                            <td class="text-center">{{ item.price }} د.ل</td>
+                                            <td class="text-center">{{ item.quantity }}</td>
+                                            <td class="text-center">{{ item.price * item.quantity }} د.ل</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                    <tfoot>
+                                        <tr class="table-light">
+                                            <th colspan="4" class="text-end">المجموع:</th>
+                                            <th class="text-center">{{ invoice.total_amount }} د.ل</th>
+                                        </tr>
+                                        <tr class="table-light">
+                                            <th colspan="4" class="text-end">المبلغ المدفوع:</th>
+                                            <th class="text-center">{{ invoice.paid_amount }} د.ل</th>
+                                        </tr>
+                                        <tr class="{% if invoice.total_amount - invoice.paid_amount > 0 %}table-danger{% else %}table-success{% endif %}">
+                                            <th colspan="4" class="text-end">المبلغ المتبقي:</th>
+                                            <th class="text-center">{{ invoice.total_amount - invoice.paid_amount }} د.ل</th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ملاحظات وشروط -->
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <div class="card border-secondary">
+                        <div class="card-header bg-secondary text-white">
+                            <i class="fas fa-info-circle"></i> ملاحظات وشروط
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> يرجى الاحتفاظ بهذه الفاتورة للرجوع إليها في المستقبل.</li>
+                                <li class="list-group-item"><i class="fas fa-money-bill-wave text-success me-2"></i> جميع الأسعار بالدينار الليبي.</li>
+                                <li class="list-group-item"><i class="fas fa-phone text-success me-2"></i> في حالة وجود أي استفسار، يرجى التواصل معنا على الرقم المذكور أعلاه.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- التوقيع -->
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card border-dark">
+                        <div class="card-header bg-dark text-white">
+                            <i class="fas fa-signature"></i> التوقيع
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h5 class="card-title"><i class="fas fa-user me-2"></i> توقيع المريض:</h5>
+                                    <div class="signature-box p-3 mt-2 mb-3" style="border: 1px dashed #ccc; border-radius: 5px; height: 80px;"></div>
+                                </div>
+                                <div class="col-md-6 text-end">
+                                    <h5 class="card-title"><i class="fas fa-stamp me-2"></i> ختم العيادة:</h5>
+                                    <div class="signature-box p-3 mt-2 mb-3" style="border: 1px dashed #ccc; border-radius: 5px; height: 80px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        #invoice-print, #invoice-print * {
+            visibility: visible;
+        }
+        #invoice-print {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+        }
+        .btn, .navbar, .footer {
+            display: none !important;
+        }
+    }
+</style>
+{% endblock %}

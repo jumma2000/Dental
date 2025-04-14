@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2><i class="fas fa-file-invoice"></i> إنشاء فاتورة جديدة</h2>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('invoices') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-right"></i> العودة إلى قائمة الفواتير
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('add_invoice') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="mb-3">
+                <label for="patient_id" class="form-label">المريض</label>
+                <select class="form-select" id="patient_id" name="patient_id" required onchange="checkUnpaidInvoices(this.value)">
+                    <option value="">-- اختر المريض --</option>
+                    {% for patient in patients %}
+                    <option value="{{ patient.id }}">{{ patient.name }} - {{ patient.phone }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- قسم الفواتير غير المدفوعة -->
+            <div id="unpaid-invoices-section" class="mb-3 d-none">
+                <div class="alert alert-warning">
+                    <h5><i class="fas fa-exclamation-triangle"></i> فواتير غير مدفوعة سابقة</h5>
+                    <p>لدى هذا المريض فواتير سابقة غير مدفوعة بالكامل. هل ترغب في ترحيل المبلغ المتبقي إلى هذه الفاتورة الجديدة؟</p>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="carry_forward" id="carry_forward_yes" value="yes">
+                        <label class="form-check-label" for="carry_forward_yes">
+                            نعم، أضف المبلغ المتبقي إلى هذه الفاتورة
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="carry_forward" id="carry_forward_no" value="no" checked>
+                        <label class="form-check-label" for="carry_forward_no">
+                            لا، أنشئ فاتورة جديدة منفصلة
+                        </label>
+                    </div>
+                    <div id="unpaid-invoices-list" class="mt-3">
+                        <h6>الفواتير غير المدفوعة:</h6>
+                        <ul class="list-group">
+                            <!-- سيتم ملؤها بواسطة JavaScript -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="payment_method" class="form-label">طريقة الدفع</label>
+                <select class="form-select" id="payment_method" name="payment_method" required>
+                    <option value="cash">نقداً</option>
+                    <option value="card">بطاقة</option>
+                </select>
+            </div>
+
+            <div class="alert alert-info">
+                بعد إنشاء الفاتورة، سيتم توجيهك إلى صفحة تحرير الفاتورة لإضافة العلاجات والخدمات.
+            </div>
+
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> إنشاء الفاتورة
+                </button>
+                <a href="{{ url_for('invoices') }}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> إلغاء
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // قاموس لتخزين الفواتير غير المدفوعة لكل مريض
+    const unpaidInvoices = {
+        {% for patient_id, invoices in unpaid_invoices.items() %}
+        "{{ patient_id }}": [
+            {% for invoice in invoices %}
+            {
+                id: {{ invoice.id }},
+                date: "{{ invoice.date.strftime('%Y-%m-%d') }}",
+                total: {{ invoice.total_amount }},
+                paid: {{ invoice.paid_amount }},
+                remaining: {{ invoice.total_amount - invoice.paid_amount }}
+            },
+            {% endfor %}
+        ],
+        {% endfor %}
+    };
+
+    // فحص الفواتير غير المدفوعة للمريض المحدد
+    function checkUnpaidInvoices(patientId) {
+        const unpaidSection = document.getElementById('unpaid-invoices-section');
+        const unpaidList = document.getElementById('unpaid-invoices-list').querySelector('ul');
+
+        // إفراغ القائمة
+        unpaidList.innerHTML = '';
+
+        // التحقق من وجود فواتير غير مدفوعة
+        if (patientId && unpaidInvoices[patientId] && unpaidInvoices[patientId].length > 0) {
+            // إظهار قسم الفواتير غير المدفوعة
+            unpaidSection.classList.remove('d-none');
+
+            // إضافة الفواتير غير المدفوعة إلى القائمة
+            unpaidInvoices[patientId].forEach(invoice => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item';
+                li.innerHTML = `فاتورة #${invoice.id} - التاريخ: ${invoice.date} - المبلغ المتبقي: <strong>${invoice.remaining} د.ل</strong>`;
+                unpaidList.appendChild(li);
+            });
+        } else {
+            // إخفاء قسم الفواتير غير المدفوعة
+            unpaidSection.classList.add('d-none');
+        }
+    }
+</script>
+{% endblock %}

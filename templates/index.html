@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12 text-center mb-4">
+        <h1 class="display-4">مرحباً بك في نظام إدارة عيادة ابتسامة المشاهير</h1>
+        <p class="lead">نظام متكامل لإدارة عيادة طب وتجميل الأسنان بكل سهولة</p>
+    </div>
+</div>
+
+<div class="row">
+    <!-- إحصائيات سريعة -->
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-header">
+                <i class="fas fa-users"></i> المرضى
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">{{ patients_count }}</h5>
+                <a href="{{ url_for('patients') }}" class="btn btn-primary">عرض المرضى</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-header">
+                <i class="fas fa-user-md"></i> الأطباء
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">{{ doctors_count }}</h5>
+                <a href="{{ url_for('doctors') }}" class="btn btn-primary">عرض الأطباء</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-header">
+                <i class="fas fa-calendar-check"></i> المواعيد
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">{{ appointments_count }}</h5>
+                <a href="{{ url_for('appointments') }}" class="btn btn-primary">عرض المواعيد</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-header">
+                <i class="fas fa-file-invoice-dollar"></i> الفواتير
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">{{ invoices_count }}</h5>
+                <a href="{{ url_for('invoices') }}" class="btn btn-primary">عرض الفواتير</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <!-- مواعيد اليوم -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-calendar-day"></i> مواعيد اليوم
+            </div>
+            <div class="card-body">
+                {% if today_appointments %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>المريض</th>
+                                <th>الطبيب</th>
+                                <th>الوقت</th>
+                                <th>الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for appointment in today_appointments %}
+                            <tr>
+                                <td>{{ appointment.patient.name }}</td>
+                                <td>{{ appointment.doctor.name }}</td>
+                                <td>{{ appointment.time.strftime('%H:%M') }}</td>
+                                <td>
+                                    {% if appointment.status == 'scheduled' %}
+                                    <span class="badge bg-primary">مجدول</span>
+                                    {% elif appointment.status == 'completed' %}
+                                    <span class="badge bg-success">مكتمل</span>
+                                    {% elif appointment.status == 'cancelled' %}
+                                    <span class="badge bg-danger">ملغي</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-center">لا توجد مواعيد لهذا اليوم</p>
+                {% endif %}
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('add_appointment') }}" class="btn btn-primary">إضافة موعد جديد</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- آخر الفواتير -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-file-invoice"></i> آخر الفواتير
+            </div>
+            <div class="card-body">
+                {% if recent_invoices %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>رقم</th>
+                                <th>المريض</th>
+                                <th>المبلغ</th>
+                                <th>الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for invoice in recent_invoices %}
+                            <tr>
+                                <td>{{ invoice.id }}</td>
+                                <td>{{ invoice.patient.name }}</td>
+                                <td>{{ invoice.total_amount }} د.ل</td>
+                                <td>
+                                    {% if invoice.status == 'paid' %}
+                                    <span class="badge bg-success">مدفوع</span>
+                                    {% elif invoice.status == 'partial' %}
+                                    <span class="badge bg-warning text-dark">مدفوع جزئياً</span>
+                                    {% elif invoice.status == 'unpaid' %}
+                                    <span class="badge bg-danger">غير مدفوع</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-center">لا توجد فواتير حديثة</p>
+                {% endif %}
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('add_invoice') }}" class="btn btn-primary">إنشاء فاتورة جديدة</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

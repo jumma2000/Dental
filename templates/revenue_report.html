@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2><i class="fas fa-money-bill-wave"></i> تقرير الإيرادات</h2>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('reports') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-right"></i> العودة إلى التقارير
+        </a>
+    </div>
+</div>
+
+<!-- فلاتر التقرير -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white">
+        <i class="fas fa-filter"></i> فلترة التقرير
+    </div>
+    <div class="card-body">
+        <form id="revenue-filter-form" method="GET" action="{{ url_for('revenue_report') }}">
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <label for="period" class="form-label">الفترة الزمنية</label>
+                    <select class="form-select" id="period" name="period">
+                        <option value="daily" {% if period == 'daily' %}selected{% endif %}>يومي</option>
+                        <option value="weekly" {% if period == 'weekly' %}selected{% endif %}>أسبوعي</option>
+                        <option value="monthly" {% if period == 'monthly' %}selected{% endif %}>شهري</option>
+                        <option value="yearly" {% if period == 'yearly' %}selected{% endif %}>سنوي</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="start_date" class="form-label">من تاريخ</label>
+                    <input type="date" class="form-control" id="start_date" name="start_date" value="{{ start_date }}">
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="end_date" class="form-label">إلى تاريخ</label>
+                    <input type="date" class="form-control" id="end_date" name="end_date" value="{{ end_date }}">
+                </div>
+                <div class="col-md-3 mb-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search"></i> عرض النتائج
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ملخص الإيرادات -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100 bg-light">
+            <div class="card-body text-center">
+                <h5 class="card-title">إجمالي الإيرادات</h5>
+                <h2 class="text-primary">{{ total_revenue }} د.ل</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100 bg-light">
+            <div class="card-body text-center">
+                <h5 class="card-title">إجمالي المدفوعات</h5>
+                <h2 class="text-success">{{ total_paid }} د.ل</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100 bg-light">
+            <div class="card-body text-center">
+                <h5 class="card-title">إجمالي المستحقات</h5>
+                <h2 class="text-danger">{{ total_due }} د.ل</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- الرسم البياني للإيرادات -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white">
+        <i class="fas fa-chart-bar"></i> الرسم البياني للإيرادات
+    </div>
+    <div class="card-body">
+        <canvas id="revenueChart" height="300"></canvas>
+    </div>
+</div>
+
+<!-- جدول تفاصيل الإيرادات -->
+<div class="card shadow-sm">
+    <div class="card-header bg-primary text-white">
+        <i class="fas fa-table"></i> تفاصيل الإيرادات
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>التاريخ</th>
+                        <th class="text-center">عدد الفواتير</th>
+                        <th class="text-center">إجمالي الإيرادات (د.ل)</th>
+                        <th class="text-center">المدفوعات (د.ل)</th>
+                        <th class="text-center">المستحقات (د.ل)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in revenue_data %}
+                    <tr>
+                        <td>{{ item.date }}</td>
+                        <td class="text-center">{{ item.invoices_count }}</td>
+                        <td class="text-center">{{ item.total }} د.ل</td>
+                        <td class="text-center">{{ item.paid }} د.ل</td>
+                        <td class="text-center">{{ item.due }} د.ل</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot class="table-primary">
+                    <tr>
+                        <th>الإجمالي</th>
+                        <th class="text-center">{{ total_invoices }}</th>
+                        <th class="text-center">{{ total_revenue }} د.ل</th>
+                        <th class="text-center">{{ total_paid }} د.ل</th>
+                        <th class="text-center">{{ total_due }} د.ل</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- زر تصدير التقرير -->
+<div class="row mt-4">
+    <div class="col-md-12 text-center">
+        <button id="export-pdf" class="btn btn-danger me-2">
+            <i class="fas fa-file-pdf"></i> تصدير PDF
+        </button>
+        <button id="export-excel" class="btn btn-success">
+            <i class="fas fa-file-excel"></i> تصدير Excel
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // بيانات الرسم البياني
+        const labels = {{ chart_labels|tojson }};
+        const revenueData = {{ chart_revenue|tojson }};
+        const paidData = {{ chart_paid|tojson }};
+        const dueData = {{ chart_due|tojson }};
+
+        // إنشاء الرسم البياني
+        const ctx = document.getElementById('revenueChart').getContext('2d');
+        const revenueChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'إجمالي الإيرادات',
+                        data: revenueData,
+                        backgroundColor: 'rgba(13, 110, 253, 0.5)',
+                        borderColor: 'rgba(13, 110, 253, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'المدفوعات',
+                        data: paidData,
+                        backgroundColor: 'rgba(25, 135, 84, 0.5)',
+                        borderColor: 'rgba(25, 135, 84, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'المستحقات',
+                        data: dueData,
+                        backgroundColor: 'rgba(220, 53, 69, 0.5)',
+                        borderColor: 'rgba(220, 53, 69, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: 'تقرير الإيرادات'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // تصدير التقرير
+        document.getElementById('export-pdf').addEventListener('click', function() {
+            alert('سيتم تصدير التقرير بصيغة PDF');
+            // هنا يمكن إضافة كود لتصدير التقرير
+        });
+
+        document.getElementById('export-excel').addEventListener('click', function() {
+            alert('سيتم تصدير التقرير بصيغة Excel');
+            // هنا يمكن إضافة كود لتصدير التقرير
+        });
+    });
+</script>
+{% endblock %}

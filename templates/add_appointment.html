@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2><i class="fas fa-calendar-plus"></i> إضافة موعد جديد</h2>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('appointments') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-right"></i> العودة إلى قائمة المواعيد
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('add_appointment') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            
+            <div class="mb-3">
+                <label for="patient_id" class="form-label">المريض</label>
+                <select class="form-select" id="patient_id" name="patient_id" required>
+                    <option value="">-- اختر المريض --</option>
+                    {% for patient in patients %}
+                    <option value="{{ patient.id }}">{{ patient.name }} - {{ patient.phone }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label for="doctor_id" class="form-label">الطبيب</label>
+                <select class="form-select" id="doctor_id" name="doctor_id" required>
+                    <option value="">-- اختر الطبيب --</option>
+                    {% for doctor in doctors %}
+                    <option value="{{ doctor.id }}">{{ doctor.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="date" class="form-label">التاريخ</label>
+                    <input type="date" class="form-control" id="date" name="date" required>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="time" class="form-label">الوقت</label>
+                    <input type="time" class="form-control" id="time" name="time" required>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="notes" class="form-label">ملاحظات</label>
+                <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+            </div>
+            
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> حفظ
+                </button>
+                <a href="{{ url_for('appointments') }}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> إلغاء
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

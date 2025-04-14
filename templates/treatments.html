@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2><i class="fas fa-procedures"></i> إدارة العلاجات</h2>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('add_treatment') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> إضافة علاج جديد
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        {% if treatments %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>اسم العلاج</th>
+                        <th>الوصف</th>
+                        <th>السعر (د.ل)</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for treatment in treatments %}
+                    <tr>
+                        <td>{{ treatment.id }}</td>
+                        <td>{{ treatment.name }}</td>
+                        <td>{{ treatment.description }}</td>
+                        <td>{{ treatment.price }} د.ل</td>
+                        <td>
+                            <a href="{{ url_for('edit_treatment', id=treatment.id) }}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-edit"></i> تعديل
+                            </a>
+                            <a href="{{ url_for('delete_treatment', id=treatment.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('هل أنت متأكد من حذف هذا العلاج؟');">
+                                <i class="fas fa-trash"></i> حذف
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info text-center">
+            لا توجد علاجات مسجلة حالياً. <a href="{{ url_for('add_treatment') }}">إضافة علاج جديد</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

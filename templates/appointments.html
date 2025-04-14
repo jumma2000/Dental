@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2><i class="fas fa-calendar-check"></i> إدارة المواعيد</h2>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('add_appointment') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> إضافة موعد جديد
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        {% if appointments %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>المريض</th>
+                        <th>الطبيب</th>
+                        <th>التاريخ</th>
+                        <th>الوقت</th>
+                        <th>الحالة</th>
+                        <th>ملاحظات</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for appointment in appointments %}
+                    <tr>
+                        <td>{{ appointment.id }}</td>
+                        <td>{{ appointment.patient.name }}</td>
+                        <td>{{ appointment.doctor.name }}</td>
+                        <td>{{ appointment.date.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ appointment.time.strftime('%H:%M') }}</td>
+                        <td>
+                            {% if appointment.status == 'scheduled' %}
+                            <span class="badge bg-primary">مجدول</span>
+                            {% elif appointment.status == 'completed' %}
+                            <span class="badge bg-success">مكتمل</span>
+                            {% elif appointment.status == 'cancelled' %}
+                            <span class="badge bg-danger">ملغي</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ appointment.notes }}</td>
+                        <td>
+                            <a href="{{ url_for('edit_appointment', id=appointment.id) }}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-edit"></i> تعديل
+                            </a>
+                            <a href="{{ url_for('delete_appointment', id=appointment.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('هل أنت متأكد من حذف هذا الموعد؟');">
+                                <i class="fas fa-trash"></i> حذف
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info text-center">
+            لا توجد مواعيد مسجلة حالياً. <a href="{{ url_for('add_appointment') }}">إضافة موعد جديد</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
