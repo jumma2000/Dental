@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2><i class="fas fa-key"></i> إدارة صلاحيات الدور</h2>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('users') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-right"></i> العودة إلى إدارة المستخدمين
+        </a>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-{{ role.name|lower }} text-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <i class="fas fa-key"></i> إدارة صلاحيات الدور: <strong>{{ role.name }}</strong>
+                <span class="badge bg-light text-{{ role.name|lower }} ms-2">الوصف: {{ role.description }}</span>
+            </div>
+            <div>
+                <span class="badge bg-light text-{{ role.name|lower }}">عدد المستخدمين: {{ role.users|length }}</span>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('edit_role_permissions', id=role.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <!-- ملخص الصلاحيات -->
+            <div class="alert alert-info mb-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="fas fa-info-circle"></i> عدد الصلاحيات المتاحة: <strong>{{ permissions|length }}</strong>
+                    </div>
+                    <div>
+                        الصلاحيات المحددة: <span class="badge bg-primary">{{ role_permissions|length }}</span> من <span class="badge bg-secondary">{{ permissions|length }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- أزرار التحديد السريع -->
+            <div class="mb-3 text-end">
+                <button type="button" class="btn btn-sm btn-outline-primary me-2" id="selectAll">
+                    <i class="fas fa-check-square"></i> تحديد الكل
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="deselectAll">
+                    <i class="fas fa-square"></i> إلغاء تحديد الكل
+                </button>
+            </div>
+
+            <!-- مجموعات الصلاحيات -->
+            <div class="mb-3">
+                <div class="row">
+                    <!-- صلاحيات المرضى -->
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-header bg-light">
+                                <i class="fas fa-user-injured"></i> صلاحيات المرضى
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    {% for permission in permissions if 'patient' in permission.name %}
+                                    <div class="col-md-6 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input permission-checkbox" type="checkbox" id="permission_{{ permission.id }}" name="permissions" value="{{ permission.id }}"
+                                                {% if permission.id in role_permissions %}checked{% endif %}>
+                                            <label class="form-check-label" for="permission_{{ permission.id }}">
+                                                <code>{{ permission.name }}</code>
+                                                <div class="text-muted small">{{ permission.description }}</div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- صلاحيات الأطباء -->
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-header bg-light">
+                                <i class="fas fa-user-md"></i> صلاحيات الأطباء
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    {% for permission in permissions if 'doctor' in permission.name %}
+                                    <div class="col-md-6 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input permission-checkbox" type="checkbox" id="permission_{{ permission.id }}" name="permissions" value="{{ permission.id }}"
+                                                {% if permission.id in role_permissions %}checked{% endif %}>
+                                            <label class="form-check-label" for="permission_{{ permission.id }}">
+                                                <code>{{ permission.name }}</code>
+                                                <div class="text-muted small">{{ permission.description }}</div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- صلاحيات المواعيد -->
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-header bg-light">
+                                <i class="fas fa-calendar-check"></i> صلاحيات المواعيد
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    {% for permission in permissions if 'appointment' in permission.name %}
+                                    <div class="col-md-6 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input permission-checkbox" type="checkbox" id="permission_{{ permission.id }}" name="permissions" value="{{ permission.id }}"
+                                                {% if permission.id in role_permissions %}checked{% endif %}>
+                                            <label class="form-check-label" for="permission_{{ permission.id }}">
+                                                <code>{{ permission.name }}</code>
+                                                <div class="text-muted small">{{ permission.description }}</div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- صلاحيات الفواتير والعلاجات -->
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-header bg-light">
+                                <i class="fas fa-file-invoice-dollar"></i> صلاحيات الفواتير والعلاجات
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    {% for permission in permissions if 'invoice' in permission.name or 'treatment' in permission.name %}
+                                    <div class="col-md-6 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input permission-checkbox" type="checkbox" id="permission_{{ permission.id }}" name="permissions" value="{{ permission.id }}"
+                                                {% if permission.id in role_permissions %}checked{% endif %}>
+                                            <label class="form-check-label" for="permission_{{ permission.id }}">
+                                                <code>{{ permission.name }}</code>
+                                                <div class="text-muted small">{{ permission.description }}</div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- صلاحيات أخرى -->
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-header bg-light">
+                                <i class="fas fa-cogs"></i> صلاحيات أخرى
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    {% for permission in permissions if not ('patient' in permission.name or 'doctor' in permission.name or 'appointment' in permission.name or 'invoice' in permission.name or 'treatment' in permission.name) %}
+                                    <div class="col-md-6 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input permission-checkbox" type="checkbox" id="permission_{{ permission.id }}" name="permissions" value="{{ permission.id }}"
+                                                {% if permission.id in role_permissions %}checked{% endif %}>
+                                            <label class="form-check-label" for="permission_{{ permission.id }}">
+                                                <code>{{ permission.name }}</code>
+                                                <div class="text-muted small">{{ permission.description }}</div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- سكريبت لتحديد/إلغاء تحديد الكل -->
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const selectAllBtn = document.getElementById('selectAll');
+                    const deselectAllBtn = document.getElementById('deselectAll');
+                    const checkboxes = document.querySelectorAll('.permission-checkbox');
+
+                    selectAllBtn.addEventListener('click', function() {
+                        checkboxes.forEach(checkbox => {
+                            checkbox.checked = true;
+                        });
+                    });
+
+                    deselectAllBtn.addEventListener('click', function() {
+                        checkboxes.forEach(checkbox => {
+                            checkbox.checked = false;
+                        });
+                    });
+                });
+            </script>
+
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <div>
+                    <a href="{{ url_for('users') }}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> إلغاء
+                    </a>
+                </div>
+                <div>
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-save"></i> حفظ الصلاحيات
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

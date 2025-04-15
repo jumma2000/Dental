@@ -1,0 +1,303 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2><i class="fas fa-users-cog"></i> إدارة المستخدمين</h2>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('register') }}" class="btn btn-primary">
+            <i class="fas fa-user-plus"></i> إضافة مستخدم جديد
+        </a>
+    </div>
+</div>
+
+<!-- إحصائيات المستخدمين -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white shadow-sm">
+            <div class="card-body text-center">
+                <h1 class="display-4">{{ users|length }}</h1>
+                <h5 class="card-title">إجمالي المستخدمين</h5>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white shadow-sm">
+            <div class="card-body text-center">
+                <h1 class="display-4">{{ users|selectattr('is_active', 'eq', true)|list|length }}</h1>
+                <h5 class="card-title">المستخدمين النشطين</h5>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-danger text-white shadow-sm">
+            <div class="card-body text-center">
+                <h1 class="display-4">{{ users|selectattr('is_active', 'eq', false)|list|length }}</h1>
+                <h5 class="card-title">المستخدمين غير النشطين</h5>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white shadow-sm">
+            <div class="card-body text-center">
+                <h1 class="display-4">{{ roles|length }}</h1>
+                <h5 class="card-title">الأدوار</h5>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <div>
+            <i class="fas fa-list"></i> قائمة المستخدمين
+        </div>
+        <div>
+            <button class="btn btn-sm btn-light" type="button" data-bs-toggle="collapse" data-bs-target="#searchCollapse" aria-expanded="false" aria-controls="searchCollapse">
+                <i class="fas fa-search"></i> بحث متقدم
+            </button>
+        </div>
+    </div>
+
+    <!-- قسم البحث المتقدم -->
+    <div class="collapse" id="searchCollapse">
+        <div class="card-body bg-light border-bottom">
+            <form method="GET" action="{{ url_for('users') }}" class="row g-3">
+                <div class="col-md-4">
+                    <label for="search_username" class="form-label">اسم المستخدم</label>
+                    <input type="text" class="form-control" id="search_username" name="username" value="{{ request.args.get('username', '') }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="search_email" class="form-label">البريد الإلكتروني</label>
+                    <input type="text" class="form-control" id="search_email" name="email" value="{{ request.args.get('email', '') }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="search_role" class="form-label">الدور</label>
+                    <select class="form-select" id="search_role" name="role_id">
+                        <option value="">-- اختر الدور --</option>
+                        {% for role in roles %}
+                        <option value="{{ role.id }}" {% if request.args.get('role_id')|int == role.id %}selected{% endif %}>{{ role.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="search_status" class="form-label">الحالة</label>
+                    <select class="form-select" id="search_status" name="status">
+                        <option value="">-- اختر الحالة --</option>
+                        <option value="active" {% if request.args.get('status') == 'active' %}selected{% endif %}>نشط</option>
+                        <option value="inactive" {% if request.args.get('status') == 'inactive' %}selected{% endif %}>غير نشط</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="search_date_from" class="form-label">تاريخ الإنشاء من</label>
+                    <input type="date" class="form-control" id="search_date_from" name="date_from" value="{{ request.args.get('date_from', '') }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="search_date_to" class="form-label">تاريخ الإنشاء إلى</label>
+                    <input type="date" class="form-control" id="search_date_to" name="date_to" value="{{ request.args.get('date_to', '') }}">
+                </div>
+                <div class="col-12 text-end">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i> بحث
+                    </button>
+                    <a href="{{ url_for('users') }}" class="btn btn-secondary">
+                        <i class="fas fa-redo"></i> إعادة ضبط
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card-body">
+        {% if users %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>اسم المستخدم</th>
+                        <th>الاسم الكامل</th>
+                        <th>البريد الإلكتروني</th>
+                        <th>الدور</th>
+                        <th>الحالة</th>
+                        <th>تاريخ الإنشاء</th>
+                        <th>آخر تسجيل دخول</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr class="{% if user.id == current_user.id %}table-primary{% elif not user.is_active %}table-danger{% endif %}">
+                        <td>{{ user.id }}</td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="me-2">
+                                    <span class="avatar rounded-circle bg-{{ user.role.name|lower }}-subtle d-inline-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                        {{ user.username[0]|upper }}
+                                    </span>
+                                </div>
+                                <div>
+                                    <strong>{{ user.username }}</strong>
+                                    {% if user.id == current_user.id %}
+                                    <span class="badge bg-primary ms-1">أنت</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ user.full_name }}</td>
+                        <td>
+                            <a href="mailto:{{ user.email }}" class="text-decoration-none">{{ user.email }}</a>
+                        </td>
+                        <td>
+                            <span class="badge bg-{{ user.role.name|lower }}">{{ user.role.name }}</span>
+                        </td>
+                        <td>
+                            {% if user.is_active %}
+                            <span class="badge bg-success">نشط</span>
+                            {% else %}
+                            <span class="badge bg-danger">غير نشط</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            {% if user.last_login %}
+                            <span title="{{ user.last_login.strftime('%Y-%m-%d %H:%M:%S') }}">
+                                {{ user.last_login.strftime('%Y-%m-%d') }}
+                                <small class="text-muted">{{ user.last_login.strftime('%H:%M') }}</small>
+                            </span>
+                            {% else %}
+                            <span class="text-muted">لم يسجل الدخول بعد</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="{{ url_for('edit_user', id=user.id) }}" class="btn btn-sm btn-primary" title="تعديل المستخدم">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                {% if current_user.id != user.id %}
+                                <a href="{{ url_for('toggle_user_status', id=user.id) }}" class="btn btn-sm {% if user.is_active %}btn-warning{% else %}btn-success{% endif %}" title="{% if user.is_active %}تعطيل{% else %}تفعيل{% endif %} المستخدم">
+                                    <i class="fas {% if user.is_active %}fa-user-slash{% else %}fa-user-check{% endif %}"></i>
+                                </a>
+                                {% if not user.role.name == 'admin' %}
+                                <a href="{{ url_for('delete_user', id=user.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('هل أنت متأكد من حذف هذا المستخدم؟');" title="حذف المستخدم">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                                {% endif %}
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info text-center">
+            لا يوجد مستخدمين مسجلين حالياً. <a href="{{ url_for('register') }}">إضافة مستخدم جديد</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="fas fa-user-tag"></i> الأدوار
+                </div>
+                <div>
+                    <span class="badge bg-light text-primary">إجمالي: {{ roles|length }}</span>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if roles %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>الاسم</th>
+                                <th>الوصف</th>
+                                <th>عدد المستخدمين</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for role in roles %}
+                            <tr>
+                                <td>{{ role.id }}</td>
+                                <td>
+                                    <span class="badge bg-{{ role.name|lower }} me-2">●</span>
+                                    <strong>{{ role.name }}</strong>
+                                </td>
+                                <td>{{ role.description }}</td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ role.users|length }}</span>
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('edit_role_permissions', id=role.id) }}" class="btn btn-sm btn-info" title="إدارة الصلاحيات">
+                                        <i class="fas fa-key"></i> الصلاحيات
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info text-center">
+                    لا توجد أدوار مسجلة حالياً.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="fas fa-key"></i> الصلاحيات
+                </div>
+                <div>
+                    <span class="badge bg-light text-primary">إجمالي: {{ permissions|length }}</span>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if permissions %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>الاسم</th>
+                                <th>الوصف</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for permission in permissions %}
+                            <tr>
+                                <td>{{ permission.id }}</td>
+                                <td>
+                                    <code>{{ permission.name }}</code>
+                                </td>
+                                <td>
+                                    <span class="text-muted">{{ permission.description }}</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info text-center">
+                    لا توجد صلاحيات مسجلة حالياً.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

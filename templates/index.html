@@ -8,6 +8,39 @@
     </div>
 </div>
 
+<!-- بحث شامل -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <i class="fas fa-search"></i> بحث شامل
+            </div>
+            <div class="card-body">
+                <form id="globalSearchForm" action="{{ url_for('global_search') }}" method="GET">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="input-group">
+                                <input type="text" name="q" class="form-control form-control-lg" placeholder="ابحث عن مريض، موعد، فاتورة..." value="{{ request.args.get('q', '') }}">
+                                <button class="btn btn-primary btn-lg" type="submit">
+                                    <i class="fas fa-search"></i> بحث
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <select name="search_in" class="form-select form-select-lg">
+                                <option value="all" {% if request.args.get('search_in') == 'all' %}selected{% endif %}>بحث في كل شيء</option>
+                                <option value="patients" {% if request.args.get('search_in') == 'patients' %}selected{% endif %}>المرضى</option>
+                                <option value="appointments" {% if request.args.get('search_in') == 'appointments' %}selected{% endif %}>المواعيد</option>
+                                <option value="invoices" {% if request.args.get('search_in') == 'invoices' %}selected{% endif %}>الفواتير</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="row">
     <!-- إحصائيات سريعة -->
     <div class="col-md-3">

@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2><i class="fas fa-user-edit"></i> تعديل المستخدم</h2>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('users') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-right"></i> العودة إلى قائمة المستخدمين
+        </a>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-{{ user.role.name|lower }} text-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <i class="fas fa-user-edit"></i> تعديل بيانات المستخدم: <strong>{{ user.username }}</strong>
+                <span class="badge bg-light text-{{ user.role.name|lower }} ms-2">الدور: {{ user.role.name }}</span>
+            </div>
+            <div>
+                <span class="badge bg-{{ 'success' if user.is_active else 'danger' }} me-2">
+                    <i class="fas {{ 'fa-check-circle' if user.is_active else 'fa-times-circle' }}"></i>
+                    {{ 'نشط' if user.is_active else 'غير نشط' }}
+                </span>
+                {% if user.last_login %}
+                <span class="badge bg-light text-dark" title="آخر تسجيل دخول">
+                    <i class="fas fa-clock"></i> {{ user.last_login.strftime('%Y-%m-%d %H:%M') }}
+                </span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('edit_user', id=user.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <!-- معلومات المستخدم الأساسية -->
+            <div class="card mb-4 border-light">
+                <div class="card-header bg-light">
+                    <i class="fas fa-id-card"></i> معلومات الحساب
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="username" class="form-label">اسم المستخدم</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                <input type="text" class="form-control" id="username" name="username" value="{{ user.username }}" required>
+                            </div>
+                            <small class="text-muted">اسم المستخدم الذي سيتم استخدامه لتسجيل الدخول</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">البريد الإلكتروني</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- المعلومات الشخصية -->
+            <div class="card mb-4 border-light">
+                <div class="card-header bg-light">
+                    <i class="fas fa-address-card"></i> المعلومات الشخصية
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="full_name" class="form-label">الاسم الكامل</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-id-badge"></i></span>
+                                <input type="text" class="form-control" id="full_name" name="full_name" value="{{ user.full_name }}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="phone" class="form-label">رقم الهاتف</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                <input type="text" class="form-control" id="phone" name="phone" value="{{ user.phone }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- كلمة المرور -->
+            <div class="card mb-4 border-light">
+                <div class="card-header bg-light">
+                    <i class="fas fa-key"></i> كلمة المرور
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="password" class="form-label">كلمة المرور الجديدة</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                <input type="password" class="form-control" id="password" name="password">
+                            </div>
+                            <small class="text-muted">اتركها فارغة للاحتفاظ بكلمة المرور الحالية</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="confirm_password" class="form-label">تأكيد كلمة المرور الجديدة</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-check-double"></i></span>
+                                <input type="password" class="form-control" id="confirm_password" name="confirm_password">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- الصلاحيات والحالة -->
+            <div class="card mb-4 border-light">
+                <div class="card-header bg-light">
+                    <i class="fas fa-user-shield"></i> الصلاحيات والحالة
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="role" class="form-label">الدور</label>
+                            <select class="form-select" id="role" name="role_id" required>
+                                {% for role in roles %}
+                                <option value="{{ role.id }}" {% if role.id == user.role_id %}selected{% endif %}>
+                                    <span>{{ role.name }}</span> - {{ role.description }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <small class="text-muted">يحدد الدور صلاحيات المستخدم في النظام</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label d-block">حالة الحساب</label>
+                            <div class="form-check form-switch">
+                                <input type="checkbox" class="form-check-input" id="is_active" name="is_active" {% if user.is_active %}checked{% endif %}>
+                                <label class="form-check-label" for="is_active">مستخدم نشط</label>
+                            </div>
+                            <small class="text-muted">المستخدمون غير النشطين لا يمكنهم تسجيل الدخول</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <div>
+                    <a href="{{ url_for('users') }}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> إلغاء
+                    </a>
+                </div>
+                <div>
+                    <button type="submit" class="btn btn-success btn-lg">
+                        <i class="fas fa-save"></i> حفظ التغييرات
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

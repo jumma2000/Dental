@@ -1,5 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+from flask_login import UserMixin
+from werkzeug.security import generate_password_hash, check_password_hash
 
 db = SQLAlchemy()
 
@@ -61,3 +63,49 @@ class InvoiceItem(db.Model):
     quantity = db.Column(db.Integer, default=1)
     price = db.Column(db.Float, nullable=False)  # السعر بالدينار الليبي
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+# نظام المستخدمين والصلاحيات
+class Role(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), unique=True, nullable=False)  # admin, doctor, receptionist, accountant
+    description = db.Column(db.String(200))
+    users = db.relationship('User', backref='role', lazy=True)
+    permissions = db.relationship('RolePermission', backref='role', lazy=True, cascade='all, delete-orphan')
+
+class Permission(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), unique=True, nullable=False)
+    description = db.Column(db.String(200))
+    roles = db.relationship('RolePermission', backref='permission', lazy=True, cascade='all, delete-orphan')
+
+class RolePermission(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    role_id = db.Column(db.Integer, db.ForeignKey('role.id'), nullable=False)
+    permission_id = db.Column(db.Integer, db.ForeignKey('permission.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class User(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(50), unique=True, nullable=False)
+    email = db.Column(db.String(100), unique=True, nullable=False)
+    password_hash = db.Column(db.String(256), nullable=False)
+    full_name = db.Column(db.String(100), nullable=False)
+    phone = db.Column(db.String(20))
+    role_id = db.Column(db.Integer, db.ForeignKey('role.id'), nullable=False)
+    is_active = db.Column(db.Boolean, default=True)
+    last_login = db.Column(db.DateTime)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+    def has_permission(self, permission_name):
+        # التحقق مما إذا كان المستخدم لديه صلاحية معينة
+        for role_permission in self.role.permissions:
+            if role_permission.permission.name == permission_name:
+                return True
+        return False

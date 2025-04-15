@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>إنشاء Favicon لعيادة ابتسامة المشاهير</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            direction: rtl;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #0d6efd;
+        }
+        .step {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .step h2 {
+            margin-top: 0;
+            color: #0d6efd;
+        }
+        code {
+            background-color: #f5f5f5;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        .example {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .example img {
+            max-width: 100%;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>إنشاء Favicon لعيادة ابتسامة المشاهير</h1>
+
+        <div class="step">
+            <h2>الخطوة 1: تصميم الأيقونة</h2>
+            <p>يمكنك استخدام أي برنامج تصميم مثل Adobe Photoshop أو Illustrator أو موقع مجاني مثل <a href="https://www.canva.com/" target="_blank">Canva</a> لإنشاء شعار بسيط.</p>
+            <p>اقتراحات للتصميم:</p>
+            <ul>
+                <li>استخدم رمز السن مع ابتسامة</li>
+                <li>استخدم الحرف الأول من اسم العيادة (ا) بتصميم جميل</li>
+                <li>استخدم ألوان العيادة (الأزرق #0d6efd)</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h2>الخطوة 2: تحويل التصميم إلى Favicon</h2>
+            <p>بعد إنشاء التصميم، يجب تحويله إلى ملف favicon.ico. يمكنك استخدام أحد المواقع التالية:</p>
+            <ul>
+                <li><a href="https://www.favicon-generator.org/" target="_blank">Favicon Generator</a></li>
+                <li><a href="https://realfavicongenerator.net/" target="_blank">Real Favicon Generator</a></li>
+                <li><a href="https://favicon.io/" target="_blank">Favicon.io</a></li>
+            </ul>
+            <p>تأكد من حفظ الملف باسم <code>favicon.ico</code>.</p>
+        </div>
+
+        <div class="step">
+            <h2>الخطوة 3: استبدال الملف الحالي</h2>
+            <p>بعد إنشاء الملف، قم باستبداله بالملف الموجود في المجلد <code>static</code> في مشروع العيادة.</p>
+            <p>مسار الملف: <code>static/favicon.ico</code></p>
+            <p><strong>ملاحظة هامة:</strong> تم بالفعل إنشاء ملف favicon.ico بسيط في المجلد static. يمكنك استخدامه مباشرة أو استبداله بملف آخر من تصميمك.</p>
+        </div>
+
+        <div class="step">
+            <h2>الخطوة 4: التحقق من عمل الأيقونة</h2>
+            <p>بعد تحديث الملف، قم بتشغيل التطبيق واتبع الخطوات التالية:</p>
+            <ol>
+                <li>افتح المتصفح على العنوان: <code>http://127.0.0.1:5000</code></li>
+                <li>تحقق من ظهور الأيقونة في علامة تبويب المتصفح</li>
+                <li>إذا لم تظهر الأيقونة، قم بتحديث الصفحة بالضغط على <code>Ctrl+F5</code></li>
+            </ol>
+        </div>
+
+        <div class="example">
+            <h2>مثال على شكل Favicon مناسب</h2>
+            <p>يمكن أن يكون الشكل النهائي للـ favicon مشابهًا لهذا:</p>
+            <div style="width: 64px; height: 64px; margin: 0 auto; background-color: #0d6efd; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; font-size: 32px;">ا</div>
+            <p style="margin-top: 10px;">أو يمكن استخدام رمز السن مع ابتسامة:</p>
+            <div style="width: 64px; height: 64px; margin: 0 auto; background-color: white; border: 2px solid #0d6efd; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: #0d6efd; font-size: 32px;">
+                <span>&#128525;</span>
+            </div>
+        </div>
+
+        <div class="step">
+            <h2>ملاحظات إضافية</h2>
+            <p>يفضل أن يكون حجم الـ favicon مربعًا بأبعاد 16×16 أو 32×32 أو 64×64 بكسل.</p>
+            <p>تأكد من أن التصميم واضح حتى في الأحجام الصغيرة.</p>
+            <p>بعد تحديث الملف، قد تحتاج إلى تحديث المتصفح (Ctrl+F5) لرؤية التغييرات.</p>
+        </div>
+    </div>
+</body>
+</html>

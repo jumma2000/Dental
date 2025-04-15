@@ -1,0 +1,43 @@
+{% macro render_search_form(form_id, search_url, placeholder, filters=None, advanced=False) %}
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white">
+        <i class="fas fa-search"></i> البحث
+        {% if advanced %}
+        <button class="btn btn-sm btn-light float-start" type="button" data-bs-toggle="collapse" data-bs-target="#advancedSearch" aria-expanded="false">
+            <i class="fas fa-sliders-h"></i> بحث متقدم
+        </button>
+        {% endif %}
+    </div>
+    <div class="card-body">
+        <form id="{{ form_id }}" action="{{ search_url }}" method="GET">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="input-group">
+                        <input type="text" name="q" class="form-control" placeholder="{{ placeholder }}" value="{{ request.args.get('q', '') }}">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="fas fa-search"></i> بحث
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <select name="search_by" class="form-select">
+                        {% for value, label in filters %}
+                        <option value="{{ value }}" {% if request.args.get('search_by') == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            {% if advanced %}
+            <div class="collapse mt-3" id="advancedSearch">
+                <div class="card card-body bg-light">
+                    <div class="row">
+                        {{ caller() }}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+{% endmacro %}
